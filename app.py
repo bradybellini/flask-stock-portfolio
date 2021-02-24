@@ -1,6 +1,16 @@
-from flask import Flask, escape, render_template, request
+from flask import (
+    Flask,
+    escape,
+    render_template,
+    request,
+    session,
+    redirect,
+    url_for
+) 
 
 app = Flask(__name__)
+
+app.secret_key = 'BAD_SECRET_KEY'
 
 @app.route('/')
 def index():
@@ -12,7 +22,7 @@ def about():
 
 @app.route('/stocks/')
 def stocks():
-    return '<h2>Stock List...</h2>'
+    return render_template('stocks.html')
 
 @app.route('/hello/<message>')
 def hello_message(message):
@@ -27,5 +37,10 @@ def add_stock():
     if request.method == 'POST':
         for key, value in request.form.items():
             print(f'{key}: {value}')
+        
+        session['stock_symbol'] = request.form['stock_symbol']
+        session['number_of_shares'] = request.form['number_of_shares']
+        session['purchase_price'] = request.form['purchase_price']
+        return redirect(url_for('stocks'))
 
     return render_template('add_stock.html')

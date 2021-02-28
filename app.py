@@ -13,7 +13,7 @@ app.config.from_object(config_type)
 
 app.logger.removeHandler(default_handler)
 
-file_handler = RotatingFileHandler('flask-stock-portfolio.log',
+file_handler = RotatingFileHandler('instance/flask-stock-portfolio.log',
                                    maxBytes=16384,
                                    backupCount=20)
 file_formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(filename)s:%(lineno)d]')

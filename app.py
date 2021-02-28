@@ -1,21 +1,16 @@
-import logging
+import logging, os
+
+from flask import Flask
 
 from logging.handlers import RotatingFileHandler
 
 from flask.logging import default_handler
 
-from flask import (
-    Flask,
-    escape,
-    render_template,
-    request,
-    session,
-    redirect,
-    url_for,
-    flash
-) 
-
 app = Flask(__name__)
+config_type = os.getenv('CONFIG_TYPE', default='config.DevelopmentConfig')
+app.config.from_object(config_type)
+
+
 app.logger.removeHandler(default_handler)
 
 file_handler = RotatingFileHandler('flask-stock-portfolio.log',
@@ -26,44 +21,9 @@ file_handler.setFormatter(file_formatter)
 file_handler.setLevel(logging.INFO)
 app.logger.addHandler(file_handler)
 
-app.secret_key = 'BAD_SECRET_KEY'
+from project.stocks import stocks_blueprint
+from project.users import users_blueprint
 
-@app.route('/')
-def index():
-    app.logger.info('Calling the index() function.')
-    return render_template('index.html')
-
-@app.route('/about')
-def about():
-    flash('Thanks for learning about this site!', 'info')
-    return render_template('about.html', company_name='TestDriven.io')
-
-@app.route('/stocks/')
-def stocks():
-    return render_template('stocks.html')
-
-@app.route('/hello/<message>')
-def hello_message(message):
-    return f'<h1>Welcome {escape(message)}!</h1>'
-
-@app.route('/blog_posts/<int:post_id>')
-def display_blog_post(post_id):
-    return f'<h1>Blog Post #{post_id}...</h1>'
-
-@app.route('/add_stock', methods=['GET', 'POST'])
-def add_stock():
-    if request.method == 'POST':
-        for key, value in request.form.items():
-            print(f'{key}: {value}')
-        
-        session['stock_symbol'] = request.form['stock_symbol']
-        session['number_of_shares'] = request.form['number_of_shares']
-        session['purchase_price'] = request.form['purchase_price']
-
-        flash(f"Added new stock ({ request.form['stock_symbol'] })!", 'success')
-
-        app.logger.info(f"Added new stock ({ request.form['stock_symbol'] })!")
-
-        return redirect(url_for('stocks'))
-
-    return render_template('add_stock.html')
+# Register the blueprints
+app.register_blueprint(stocks_blueprint)
+app.register_blueprint(users_blueprint, url_prefix='/users')
